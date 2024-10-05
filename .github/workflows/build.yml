@@ -1,23 +1,23 @@
-name: "Build (test monitoring)"
-on:
+name: Build (test monitoring)
+true:
+  pull_request: null
   push:
-    branches: [ "*" ]
-  pull_request:
-  
+    branches:
+    - '*'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Monitor workflow with listen.dev
-        uses: listendev/action@feat/issue-65
-        with:
-          ci: only
-          jwt: ${{ secrets.LSTN_API_KEY }}
-          argus_version: v0.0
-      - uses: actions/checkout@v3
-      - uses: cachix/install-nix-action@v20
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
-      - uses: DeterminateSystems/magic-nix-cache-action@v2
-      - run: nix build --print-build-logs .#all
-      - run: echo OK
+    - uses: listendev/action@v0.11
+      with:
+        ci: only
+        jwt: ${{ secrets.LSTN }}
+    - uses: actions/checkout@v3
+    - uses: cachix/install-nix-action@v20
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: DeterminateSystems/magic-nix-cache-action@v2
+    - run: nix build --print-build-logs .#all
+    - run: echo OK
+    name: build
+    if: ''
