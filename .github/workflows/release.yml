@@ -1,144 +1,114 @@
 name: Build and Upload packages for release (test monitoring)
-
-on:
+true:
+  pull_request: null
   push:
-    branches: [ "*" ]
-  pull_request:
-  
+    branches:
+    - '*'
 jobs:
   debian-package-and-zips:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Monitor workflow with listen.dev
-        uses: listendev/action@feat/issue-65
-        with:
-          ci: only
-          jwt: ${{ secrets.LSTN_API_KEY }}
-          argus_version: v0.0
-          
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - uses: listendev/action@v0.11
+      with:
+        ci: only
+        jwt: ${{ secrets.LSTN }}
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - env:
+        ENV_VAR: value
+      name: Run bash script
+      run: sudo bash -x ./Contrib/release.sh
+    - name: Upload debian package
+      uses: actions/upload-artifact@v4
+      with:
+        compression-level: 0
+        if-no-files-found: error
+        name: packages-for-debian
+        path: ./packages/*.deb
+    - name: Upload zip & tar package
+      uses: actions/upload-artifact@v4
+      with:
+        compression-level: 0
+        if-no-files-found: error
+        name: packages-zip-tar
+        path: './packages/*
 
-      - name: Run bash script
-        run: sudo bash -x ./Contrib/release.sh
-        env:
-          ENV_VAR: value
+          !./packages/*.deb
 
-      - name: Upload debian package
-        uses: actions/upload-artifact@v4
-        with:
-          name: packages-for-debian
-          path: ./packages/*.deb  # Adjust the path to your generated files
-          compression-level: 0
-          if-no-files-found: error
-
-      - name: Upload zip & tar package
-        uses: actions/upload-artifact@v4
-        with:
-          name: packages-zip-tar
-          path: |
-            ./packages/*
-            !./packages/*.deb
-          compression-level: 0
-          if-no-files-found: error
-
+          '
+    name: debian-package-and-zips
+    if: ''
   installer-for-windows:
     runs-on: windows-latest
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
-
     - name: Install WiX Toolset
-      run: |
-        choco install wixtoolset --version=3.14.1 --force
+      run: 'choco install wixtoolset --version=3.14.1 --force
+
         choco install 7zip.commandline
 
+        '
     - name: Install Windows SDK
-      run: |
-        choco install windows-sdk-10-version-1903-all
+      run: 'choco install windows-sdk-10-version-1903-all
 
-#    - name: Set up environment
-#      run: |
-#        echo "${{ secrets.SIGNING_CERTIFICATE }}" | base64 -d >Certificate.pfx
-
-    - name: Build Windows Installer
-      shell: bash
-      run: |
-        set -x
-        ./Contrib/release.sh wininstaller
-      env:
+        '
+    - env:
         CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+      name: Build Windows Installer
+      run: 'set -x
 
+        ./Contrib/release.sh wininstaller
+
+        '
+      shell: bash
     - name: Upload windows installer
       uses: actions/upload-artifact@v4
       with:
-        name: packages-for-windows
-        path: ./packages/*  # Adjust the path to your generated files
         compression-level: 0
         if-no-files-found: error
-
+        name: packages-for-windows
+        path: ./packages/*
+    - uses: listendev/action@v0.11
+      with:
+        ci: only
+        jwt: ${{ secrets.LSTN }}
+    name: installer-for-windows
+    if: ''
   sign-all-packages:
+    needs:
+    - debian-package-and-zips
+    - installer-for-windows
     runs-on: ubuntu-latest
-    needs: [debian-package-and-zips, installer-for-windows]
     steps:
-      - name: Download package for Debian
-        uses: actions/download-artifact@v4
-        with:
-          name: packages-for-debian|
-          path: ./packages
-      - name: Download compressed packages
-        uses: actions/download-artifact@v4
-        with:
-          name: packages-zip-tar
-          path: ./packages
-      - name: Download windows packages
-        uses: actions/download-artifact@v4
-        with:
-          name: packages-for-windows
-          path: ./packages
-
-      - name: List downloaded files
-        run: ls -l ./packages
-
-      - name: PGP signing
-        shell: bash
-        run: |
-          set -x
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
-          gpg --import private.key
-          rm private.key
-          echo "${{ secrets.GPG_PASSPHRASE }}" > passphrase.txt
-          export GPG_TTY=$(tty)
-
-          for FILE in "./packages/*"; do
-            sha256sum $FILE >> SHA256SUMS
-            gpg --armor --detach-sign $FILE
-          done
-
-#  create-release:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Create GitHub Release
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ github.ref }}
-#          release_name: Release ${{ github.ref }}
-#          draft: false
-#          prerelease: false
-#
-#      - name: Upload Release Asset
-#        uses: actions/upload-release-asset@v1
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: path/to/generated/files/yourfile.ext  # Adjust the path and filename
-#          asset_name: yourfile.ext
-#          asset_content_type: application/octet-stream
-#
+    - name: Download package for Debian
+      uses: actions/download-artifact@v4
+      with:
+        name: packages-for-debian|
+        path: ./packages
+    - name: Download compressed packages
+      uses: actions/download-artifact@v4
+      with:
+        name: packages-zip-tar
+        path: ./packages
+    - name: Download windows packages
+      uses: actions/download-artifact@v4
+      with:
+        name: packages-for-windows
+        path: ./packages
+    - name: List downloaded files
+      run: ls -l ./packages
+    - name: PGP signing
+      run: "set -x\necho \"${{ secrets.GPG_PRIVATE_KEY }}\" > private.key\ngpg --import\
+        \ private.key\nrm private.key\necho \"${{ secrets.GPG_PASSPHRASE }}\" > passphrase.txt\n\
+        export GPG_TTY=$(tty)\n\nfor FILE in \"./packages/*\"; do\n  sha256sum $FILE\
+        \ >> SHA256SUMS\n  gpg --armor --detach-sign $FILE\ndone\n"
+      shell: bash
+    - uses: listendev/action@v0.11
+      with:
+        ci: only
+        jwt: ${{ secrets.LSTN }}
+    name: sign-all-packages
+    if: ''
