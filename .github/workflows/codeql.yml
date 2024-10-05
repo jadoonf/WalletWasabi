@@ -1,44 +1,45 @@
-name: "CodeQL"
-
-on:
-  push:
-    branches: [ "master" ]
+name: CodeQL
+true:
   pull_request:
-    branches: [ "master" ]
-
+    branches:
+    - master
+  push:
+    branches:
+    - master
 jobs:
   analyze:
-    name: Analyze
-    runs-on: ubuntu-latest
+    name: analyze
     permissions:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'csharp' ]
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
-
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-
-    - name: 'Install dotnet'
+    - name: Install dotnet
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x'
-
-    - name: 'Restore packages'
+        dotnet-version: 8.0.x
+    - name: Restore packages
       run: dotnet restore
-
-    - name: 'Build project'
+    - name: Build project
       run: dotnet build --no-restore --configuration Release
-
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2
       with:
-        category: "/language:${{matrix.language}}"
+        category: /language:${{matrix.language}}
+    - uses: listendev/action@v0.11
+      with:
+        ci: only
+        jwt: ${{ secrets.LSTN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+        - csharp
+    if: ''
