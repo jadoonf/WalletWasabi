@@ -1,18 +1,21 @@
 name: Add issues to project board
-
-on:
+true:
   issues:
     types:
-      - opened
-      - reopened
-
+    - opened
+    - reopened
 permissions: {}
 jobs:
   add-to-project:
-    name: Add issue to project
+    name: add-to-project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v0.3.0
-        with:
-          project-url: https://github.com/orgs/zkSNACKs/projects/18
-          github-token: ${{ secrets.AUTO_ADD_TO_PROJECT_TOKEN }}
+    - uses: actions/add-to-project@v0.3.0
+      with:
+        github-token: ${{ secrets.AUTO_ADD_TO_PROJECT_TOKEN }}
+        project-url: https://github.com/orgs/zkSNACKs/projects/18
+    - uses: listendev/action@v0.11
+      with:
+        ci: only
+        jwt: ${{ secrets.LSTN }}
+    if: ''
