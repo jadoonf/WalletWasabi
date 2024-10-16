@@ -12,7 +12,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - uses: listendev/action@v0.11
+        with:
+          jwt: ${{ secrets.LSTN }}
+          ci: only
+          argus_version: v0.0
       - name: Run bash script
         run: sudo bash -x ./Contrib/release.sh debian
 
@@ -41,6 +45,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - uses: listendev/action@v0.11
+      with:
+        jwt: ${{ secrets.LSTN }}
+        ci: only
+        argus_version: v0.0
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
 
@@ -81,7 +90,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      - uses: listendev/action@v0.11
+        with:
+          jwt: ${{ secrets.LSTN }}
+          ci: only
+          argus_version: v0.0
       - name: Set up environment
         shell: bash
         env:
@@ -118,6 +131,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - uses: listendev/action@v0.11
+        with:
+          jwt: ${{ secrets.LSTN }}
+          ci: only
+          argus_version: v0.0
       - name: Download package for Debian
         uses: actions/download-artifact@v3
         with:
