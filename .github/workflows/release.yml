@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'  # Triggers on tags that start with 'v'
-
+  workflow_dispatch: 
 jobs:
   debian-package-and-zips:
     runs-on: ubuntu-latest
