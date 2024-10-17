@@ -9,14 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - uses: cachix/install-nix-action@v20
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
       - uses: listendev/action@v0.11
         with:
           jwt: ${{ secrets.LSTN }}
           ci: only
-          argus_version: v0.0
-      - uses: cachix/install-nix-action@v20
-        with:
-          nix_path: nixpkgs=channel:nixos-unstable
+          argus_version: v0.6
       - uses: DeterminateSystems/magic-nix-cache-action@v2
       - run: nix build --print-build-logs .#all
       - run: echo OK
